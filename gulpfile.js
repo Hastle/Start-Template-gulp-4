@@ -12,12 +12,11 @@ const imageminJpegRecompress = require('imagemin-jpeg-recompress');
 const pngquant = require('imagemin-pngquant');
 const del = require('del');
 
-// Определяем логику работы Browsersync
 function browsersync() {
-	browserSync.init({ // Инициализация Browsersync
-		server: { baseDir: 'app/' }, // Указываем папку сервера
-		notify: false, // Отключаем уведомления
-		online: true // Режим работы: true или false
+	browserSync.init({ 
+		server: { baseDir: 'app/' },
+		notify: false,
+		online: true
 	})
 }
 
@@ -58,10 +57,10 @@ var jsfiles = [
 
 function scripts() {
 	return src(jsfiles, {base: 'app/libs'})
-	.pipe(concat('libs.min.js')) // Конкатенируем в один файл
-	.pipe(uglify()) // Сжимаем JavaScript
-	.pipe(dest('app/js/')) // Выгружаем готовый файл в папку назначения
-	.pipe(browserSync.stream()) // Триггерим Browsersync для обновления страницы
+	.pipe(concat('libs.min.js'))
+	.pipe(uglify())
+	.pipe(dest('app/js/'))
+	.pipe(browserSync.stream())
 }
 
 function img() {
@@ -109,7 +108,7 @@ function build() {
 }
 
 function clean() {
-	return del('dist', { force: true }) // Удаляем всё содержимое папки "dist/"
+	return del('dist', { force: true })
 }
 
 function watchAll() {
@@ -121,20 +120,9 @@ function watchAll() {
 	watch('app/img/**/*.*', browserSync.reload);
 }
 
-// Экспортируем функцию browsersync() как таск browsersync. Значение после знака = это имеющаяся функция.
 exports.browsersync = browsersync;
-
-// Экспортируем функцию scripts() в таск scripts
 exports.scripts = scripts;
-
-// Экспортируем функцию sass() в таск sass
 exports.sass = sassCompile;
-
-// Экспорт функции img() в таск img
 exports.img = img;
-
-// Создаём новый таск "build", который последовательно выполняет нужные операции
 exports.build = series(clean, sass, cssMinify, scripts, img, build);
-
-// Экспортируем дефолтный таск с нужным набором функций
 exports.default = parallel(sass, cssLibs, scripts, browsersync, watchAll);
