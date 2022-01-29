@@ -13,10 +13,13 @@ const pngquant = require('imagemin-pngquant');
 const del = require('del');
 
 function browsersync() {
-	browserSync.init({ 
-		server: { baseDir: 'app/' },
+	browserSync.init({
+		server: {
+			baseDir: 'app'
+		},
+		ghostMode: { clicks: false },
 		notify: false,
-		online: true
+		online: true,
 	})
 }
 
@@ -24,7 +27,7 @@ function sassCompile() {
 	return src('app/sass/**/*.+(sass|scss)')
 	.pipe(sass().on('error', sass.logError))
 	.pipe(autoprefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7'], { cascade: true }))
-	.pipe(gulp.dest('app/css'))
+	.pipe(dest('app/css'))
 	.pipe(browserSync.reload({stream: true}))
 }
 
@@ -32,7 +35,8 @@ function cssLibs() {
 	return src('app/css/libs.css') 
 	.pipe(cssnano()) 
 	.pipe(rename({suffix: '.min'})) 
-	.pipe(dest('app/css')); 
+	.pipe(dest('app/css'))
+	.pipe(browserSync.reload({stream: true}))
 }
 
 function cssMinify() {
@@ -43,7 +47,7 @@ function cssMinify() {
 		'!app/css/libs.css',
 		])
 	.pipe(cssnano())
-	.pipe(dest('dist/css'));
+	.pipe(dest('dist/css'))
 }
 
 var jsfiles = [
@@ -52,6 +56,7 @@ var jsfiles = [
 'app/libs/magnific-popup/magnific-popup.min.js',
 'app/libs/scroll2id/pagescroll2id.min.js',
 'app/libs/wow/wow.min.js',
+'app/libs/slick/slick.min.js',
 'app/libs/fancybox/fancybox.min.js'
 ];
 
@@ -80,7 +85,7 @@ function img() {
 		],{
 			verbose: true
 		})))
-	.pipe(dest('dist/img'));
+	.pipe(dest('dist/img'))
 }
 
 function build() {
@@ -104,7 +109,7 @@ function build() {
 	.pipe(dest('dist'))
 
 	var buildHtml = src('app/**/*.html')
-	.pipe(dest('dist'));
+	.pipe(dest('dist'))
 }
 
 function clean() {
@@ -112,17 +117,22 @@ function clean() {
 }
 
 function watchAll() {
-	watch('app/sass/**/*.sass', sassCompile);
-	watch('app/**/*.html', browserSync.reload);
-	watch('app/css/*.css', browserSync.reload);
-	watch('app/js/**/*.js', browserSync.reload);
-	watch('app/libs/**/*.js', browserSync.reload);
-	watch('app/img/**/*.*', browserSync.reload);
+	watch('app/sass/**/*.sass', sassCompile)
+	watch('app/css/libs.css').on('change', cssLibs)
+	watch('app/**/*.html').on('change', browserSync.reload)
+	watch('app/css/*.css').on('change', browserSync.reload)
+	watch('app/js/**/*.js').on('change', browserSync.reload)
+	watch('app/libs/**/*.js').on('change', browserSync.reload)
+	watch('app/img/**/*.*').on('change', browserSync.reload)
 }
 
 exports.browsersync = browsersync;
 exports.scripts = scripts;
 exports.sass = sassCompile;
 exports.img = img;
+exports.watchAll = watchAll
+exports.cssMinify = cssMinify
+exports.cssLibs = cssLibs
+exports.clean = clean
 exports.build = series(clean, sass, cssMinify, scripts, img, build);
 exports.default = parallel(sass, cssLibs, scripts, browsersync, watchAll);
