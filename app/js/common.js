@@ -1,10 +1,14 @@
 $(document).ready(function() {
 
-	new WOW().init();
+	wow = new WOW({
+		mobile: false
+	})
 
-	$("#feedback-1,#feedback-2").submit(function() {
-		var captcha = grecaptcha.getResponse();
-		if (captcha.length == 0) {
+	wow.init();
+
+	$("#feedback-1").submit(function() {
+		var response = grecaptcha.getResponse(captcha);
+		if (response.length == 0) {
 			alert("Не пройдена captcha, попробуйте еще раз.")
 		} else {
 			$.ajax({
@@ -14,7 +18,8 @@ $(document).ready(function() {
 			}).done(function() {
 				$.magnificPopup.close();
 				alert("Ваше сообщение успешно отправено!");
-				$('#feedback-1')[0].reset();
+				$("#feedback-1")[0].reset();
+				grecaptcha.reset();
 				setTimeout(function() {
 					$.fancybox.close();
 				}, 1000);
@@ -23,23 +28,27 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$("a[href*='#'],.scroll").mPageScroll2id();
+	$(".scroll").mPageScroll2id();
 
-	$('.slick').slick({
-		dots: true,
-		infinite: true,
-		speed: 600,
-		slidesToShow: 1,
+
+	$('.popup-modal').magnificPopup({
+		type:'inline',
+		midClick: true,
+		removalDelay: 350,
+		mainClass: 'mfp-fade'
 	});
 
-	$('.owl-carousel').owlCarousel({
-		items: 3,
-		lazyLoad: true,
-		loop: true,
-		nav: true,
+	$('[data-fancybox="images"]').fancybox({
+		transitionEffect: "slide",
+		loop: false
+	});
+
+	$('.slider').slick({
+		slidesToShow: 1,
+		slidesToScroll: 1,
+		asNavFor: '.slider',
 		dots: true,
-		navText: ["<i class='fas fa-angle-left'></i>", "<i class='fas fa-angle-right'></i>"],
-		margin: 10
+		focusOnSelect: true
 	});
 
 });
