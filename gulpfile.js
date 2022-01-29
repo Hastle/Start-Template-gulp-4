@@ -10,6 +10,7 @@ const rename = require('gulp-rename');
 const imagemin = require('gulp-imagemin');
 const imageminJpegRecompress = require('imagemin-jpeg-recompress');
 const pngquant = require('imagemin-pngquant');
+const cache = require('gulp-cache');
 const del = require('del');
 
 function browsersync() {
@@ -40,7 +41,7 @@ function cssLibs() {
 }
 
 function cssMinify() {
-	return gulp.src([
+	return src([
 		'app/css/*.css',
 		'!app/css/media.css',
 		'!app/css/animate.css',
@@ -72,7 +73,7 @@ function img() {
 	return src('app/img/**/*')
 	.pipe(cache(imagemin([
 		imagemin.gifsicle({interlaced: true}),
-		imagemin.jpegtran({progressive: true}),
+		imagemin.mozjpeg({progressive: true}),
 		imageminJpegRecompress({
 			loops: 5,
 			min: 65,
@@ -88,7 +89,7 @@ function img() {
 	.pipe(dest('dist/img'))
 }
 
-function build() {
+async function buildAll() {
 	var buildCss = src([
 		'app/css/*',
 		'!app/css/libs.css',
@@ -128,11 +129,12 @@ function watchAll() {
 
 exports.browsersync = browsersync;
 exports.scripts = scripts;
-exports.sass = sassCompile;
+exports.sassCompile = sassCompile;
 exports.img = img;
 exports.watchAll = watchAll
 exports.cssMinify = cssMinify
 exports.cssLibs = cssLibs
 exports.clean = clean
-exports.build = series(clean, sass, cssMinify, scripts, img, build);
-exports.default = parallel(sass, cssLibs, scripts, browsersync, watchAll);
+exports.buildAll = buildAll
+exports.build = series(clean, sassCompile, cssMinify, scripts, img, buildAll);
+exports.default = parallel(sassCompile, cssLibs, scripts, browsersync, watchAll);
