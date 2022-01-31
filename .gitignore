@@ -1,6 +1,5 @@
 /node_modules/
 /dist/
 /.git/
-/app/css/
 /**/package-lock.json
 /**/*.DS_Store
