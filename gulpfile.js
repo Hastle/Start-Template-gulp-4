@@ -27,28 +27,13 @@ function browsersync() {
 function sassCompile() {
 	return src('app/sass/**/*.+(sass|scss)')
 	.pipe(sass().on('error', sass.logError))
-	.pipe(autoprefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7'], { cascade: true }))
+	.pipe(autoprefixer(['last 5 versions']))
 	.pipe(dest('app/css'))
-	.pipe(browserSync.reload({stream: true}))
-}
-
-function cssLibs() {
-	return src('app/css/libs.css') 
 	.pipe(cssnano()) 
-	.pipe(rename({suffix: '.min'})) 
+	.pipe(rename({ suffix: '.min'}))
+	.pipe(cleancss( {level: { 1: { specialComments: 0 } } }))
 	.pipe(dest('app/css'))
 	.pipe(browserSync.reload({stream: true}))
-}
-
-function cssMinify() {
-	return src([
-		'app/css/*.css',
-		'!app/css/media.css',
-		'!app/css/animate.css',
-		'!app/css/libs.css',
-		])
-	.pipe(cssnano())
-	.pipe(dest('dist/css'))
 }
 
 var jsfiles = [
@@ -91,9 +76,7 @@ function img() {
 
 async function buildAll() {
 	var buildCss = src([
-		'app/css/*',
-		'!app/css/libs.css',
-		'!app/css/animate.css'
+		'app/css/*.min.*'
 		])
 	.pipe(dest('dist/css'))
 	
@@ -119,7 +102,6 @@ function clean() {
 
 function watchAll() {
 	watch('app/sass/**/*.sass', sassCompile)
-	watch('app/css/libs.css').on('change', cssLibs)
 	watch('app/**/*.html').on('change', browserSync.reload)
 	watch('app/css/*.css').on('change', browserSync.reload)
 	watch('app/js/**/*.js').on('change', browserSync.reload)
@@ -132,9 +114,7 @@ exports.scripts = scripts;
 exports.sassCompile = sassCompile;
 exports.img = img;
 exports.watchAll = watchAll
-exports.cssMinify = cssMinify
-exports.cssLibs = cssLibs
 exports.clean = clean
 exports.buildAll = buildAll
-exports.build = series(clean, sassCompile, cssMinify, scripts, img, buildAll);
-exports.default = parallel(sassCompile, cssLibs, scripts, browsersync, watchAll);
+exports.build = series(clean, sassCompile, scripts, img, buildAll);
+exports.default = parallel(sassCompile, scripts, browsersync, watchAll);
